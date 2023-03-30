@@ -18,12 +18,13 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       required this.logout})
       : super(RegisterInitial()) {
     on<RegisterRequestEvent>((event, emit) async {
-      final mayBeUser = await register(NoParams());
+      final mayBeUser =
+          await register(MultiParams([event.username, event.password]));
       mayBeUser.fold(
-          (l) => l is ServerFailure
-              ? emit(RegisterFailure())
-              : emit(RegisterFailure()),
-          (r) => emit(RegisterSuccess()));
+          (l) => emit(RegisterFailure('Unable to register')),
+          (r) => r
+              ? emit(RegisterSuccess())
+              : emit(RegisterFailure('User already exist')));
     });
   }
 }

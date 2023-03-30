@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:urlsafety/core/util/hex_color.dart';
 import 'package:urlsafety/features/auth/bloc/auth_bloc.dart';
+import 'package:urlsafety/injection_container.dart';
 
 import '../bloc/auth_event.dart';
 import '../bloc/register_bloc.dart';
@@ -20,6 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
       TextEditingController(text: '');
   final TextEditingController passwordController =
       TextEditingController(text: '');
+  final SharedPreferences sharedPreferences = sl<SharedPreferences>();
 
   @override
   void initState() {
@@ -36,12 +40,14 @@ class _RegisterPageState extends State<RegisterPage> {
         if (state is RegisterSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Registered successfully. Logging in'),
+            backgroundColor: Colors.green,
           ));
           authBloc.add(LoggedInEvent());
         } else if (state is RegisterFailure) {
           if (state.message != null) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(state.message ?? ''),
+              backgroundColor: Colors.orange,
             ));
           }
         }
@@ -49,20 +55,18 @@ class _RegisterPageState extends State<RegisterPage> {
       builder: (context, state) {
         return Scaffold(
           body: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
                 gradient: LinearGradient(
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
               colors: [
-                Color.fromARGB(255, 183, 235, 98),
-                Color.fromARGB(251, 3, 129, 41),
+                HexColor.fromHex('#0c566f'),
+                HexColor.fromHex('#4a5d7e'),
               ],
             )),
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: ListView(
-                //crossAxisAlignment: CrossAxisAlignment.stretch,
-                //mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(
                     height: 100,
@@ -73,9 +77,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       backgroundColor: Colors.white,
                       child: CircleAvatar(
                         radius: 72,
-                        backgroundColor: Color.fromARGB(250, 64, 202, 126),
-                        child: Icon(Icons.chat_bubble,
-                            size: 75, color: Colors.white),
+                        backgroundColor: Color.fromARGB(249, 197, 34, 34),
+                        child: ImageIcon(AssetImage('assets/in_app_logo.png'),
+                            size: 100, color: Colors.black),
                       ),
                     ),
                   ),
@@ -94,7 +98,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   TextField(
                     controller: usernameController,
-                    keyboardType: TextInputType.phone,
+                    keyboardType: TextInputType.text,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       enabledBorder: OutlineInputBorder(
@@ -111,13 +115,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: const TextStyle(color: Colors.white),
                       hintText: "Username",
                       fillColor: Colors.white.withOpacity(0.5),
-                      prefixIcon: const Padding(
-                        padding: EdgeInsets.all(8.0),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
                           child: Icon(
-                            Icons.phone_outlined,
-                            color: Color.fromARGB(255, 98, 235, 121),
+                            Icons.person,
+                            color: HexColor.fromHex('#16375a'),
                           ),
                         ),
                       ),
@@ -145,13 +149,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: const TextStyle(color: Colors.white),
                       hintText: "Password",
                       fillColor: Colors.white.withOpacity(0.5),
-                      prefixIcon: const Padding(
-                        padding: EdgeInsets.all(8.0),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
                           child: Icon(
                             Icons.lock_outline_rounded,
-                            color: Color.fromARGB(255, 98, 235, 144),
+                            color: HexColor.fromHex('#16375a'),
                           ),
                         ),
                       ),
@@ -167,6 +171,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
                             content: Text('Username is blank'),
+                            backgroundColor: Colors.orange,
                           ));
                           return;
                         }
@@ -174,27 +179,37 @@ class _RegisterPageState extends State<RegisterPage> {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
                             content: Text('Password is blank'),
+                            backgroundColor: Colors.orange,
                           ));
                           return;
                         }
-                        registerBloc.add(RegisterRequestEvent());
+                        if (sharedPreferences
+                            .containsKey(usernameController.text.trim())) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: Text('User already exists'),
+                            backgroundColor: Colors.orange,
+                          ));
+                          return;
+                        }
+                        registerBloc.add(RegisterRequestEvent(
+                            usernameController.text, passwordController.text));
                       },
                       style: ButtonStyle(
                         backgroundColor:
                             MaterialStateProperty.all<Color>(Colors.white),
                         minimumSize: MaterialStateProperty.all<Size>(
                             const Size.fromHeight(50)),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50.0),
-                                    side:
-                                        const BorderSide(color: Colors.green))),
+                        shape: MaterialStateProperty
+                            .all<RoundedRectangleBorder>(RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50.0),
+                                side: const BorderSide(
+                                    color: Color.fromARGB(255, 61, 122, 214)))),
                       ),
                       child: const Text(
                         'REGISTER',
                         style: TextStyle(
-                          color: Color.fromARGB(255, 19, 88, 28),
+                          color: Color.fromARGB(255, 33, 115, 209),
                         ),
                       )),
                   AuthPageLinkButton(

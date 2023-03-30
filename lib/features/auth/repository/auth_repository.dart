@@ -7,19 +7,21 @@ class AuthRepository {
   final AuthDatasource authDatasource;
   AuthRepository({required this.authDatasource});
 
-  Future<Either<Failure, bool>> login() async {
+  Future<Either<Failure, bool>> login(
+      final String username, final String password) async {
     try {
-      final user = await authDatasource.login();
-      return Right(user);
+      final isLoggedIn = await authDatasource.login(username, password);
+      return Right(isLoggedIn);
     } on ServerException {
       return Left(ServerFailure());
     }
   }
 
-  Future<Either<Failure, bool>> register() async {
+  Future<Either<Failure, bool>> register(
+      final String username, final String password) async {
     try {
-      final user = await authDatasource.register();
-      return Right(user);
+      final isLoggedIn = await authDatasource.register(username, password);
+      return Right(isLoggedIn);
     } on ServerException {
       return Left(ServerFailure());
     }
@@ -27,8 +29,8 @@ class AuthRepository {
 
   Future<Either<Failure, bool>> getLoggedInUser() async {
     try {
-      final user = await authDatasource.getLoggedInUser();
-      return Right(user);
+      final isLoggedIn = await authDatasource.getLoggedInUser();
+      return Right(isLoggedIn);
     } on ServerException {
       return Left(ServerFailure());
     }
@@ -36,8 +38,8 @@ class AuthRepository {
 
   Future<Either<Failure, bool>> logout() async {
     try {
-      final user = await authDatasource.logout();
-      return Right(user);
+      final isLoggedOut = await authDatasource.logout();
+      return Right(isLoggedOut);
     } on ServerException {
       return Left(ServerFailure());
     }

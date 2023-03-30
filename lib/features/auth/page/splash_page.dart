@@ -1,13 +1,29 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:urlsafety/core/util/hex_color.dart';
+import 'package:urlsafety/injection_container.dart';
+
+import '../../../main.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final SharedPreferences sharedPreferences = sl<SharedPreferences>();
+    Future.delayed(const Duration(seconds: 2)).then(
+      (value) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Welcome ${sharedPreferences.getString('loggedUser')}'),
+          backgroundColor: Colors.green,
+        ));
+        Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (context) {
+            return const MyHomePage(title: 'Phishing Detector');
+          },
+        ));
+      },
+    );
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -38,12 +54,14 @@ class SplashPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    width: 75,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.white,
-                      child: const Icon(Icons.security,
-                          size: 50, color: Color.fromARGB(249, 197, 34, 34)),
+                    child: Hero(
+                      tag: 'in_app_logo',
+                      child: CircleAvatar(
+                        radius: 72,
+                        backgroundColor: Color.fromARGB(249, 197, 34, 34),
+                        child: ImageIcon(AssetImage('assets/in_app_logo.png'),
+                            size: 100, color: Colors.black),
+                      ),
                     ),
                   ),
                 ),

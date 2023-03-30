@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:urlsafety/core/util/hex_color.dart';
 import 'package:urlsafety/features/auth/bloc/auth_bloc.dart';
+import 'package:urlsafety/injection_container.dart';
 
 import '../bloc/auth_event.dart';
 import '../bloc/login_bloc.dart';
@@ -31,23 +33,27 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final AuthBloc authBloc = BlocProvider.of(context);
     final LoginBloc loginBloc = BlocProvider.of(context);
+    final SharedPreferences sharedPreferences = sl<SharedPreferences>();
     return BlocConsumer<LoginBloc, LoginState>(
       bloc: loginBloc,
       listener: (context, state) {
         if (state is LoginSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Successfully logged in'),
+            backgroundColor: Colors.green,
           ));
           authBloc.add(LoggedInEvent());
         } else if (state is LoginFailure) {
           if (state.message != null) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(state.message ?? ''),
+              backgroundColor: Colors.orange,
             ));
           }
         } else if (state is LogoutSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Successfully logged out'),
+            backgroundColor: Colors.green,
           ));
           authBloc.add(LoggedOutEvent());
         }
@@ -77,8 +83,8 @@ class _LoginPageState extends State<LoginPage> {
                       child: CircleAvatar(
                         radius: 72,
                         backgroundColor: Color.fromARGB(249, 197, 34, 34),
-                        child:
-                            Icon(Icons.security, size: 75, color: Colors.white),
+                        child: ImageIcon(AssetImage('assets/in_app_logo.png'),
+                            size: 100, color: Colors.black),
                       ),
                     ),
                   ),
@@ -116,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
                           child: Icon(
-                            Icons.phone_outlined,
+                            Icons.person,
                             color: HexColor.fromHex('#16375a'),
                           ),
                         ),
@@ -146,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                       hintText: "Password",
                       fillColor: Colors.white.withOpacity(0.5),
                       prefixIcon: Padding(
-                        padding: EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
                           child: Icon(
@@ -166,7 +172,8 @@ class _LoginPageState extends State<LoginPage> {
                         if (usernameController.text.isEmpty) {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
-                            content: Text('Phone number is blank'),
+                            content: Text('Username is blank'),
+                            backgroundColor: Colors.orange,
                           ));
                           return;
                         }
@@ -174,18 +181,22 @@ class _LoginPageState extends State<LoginPage> {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
                             content: Text('Password is blank'),
+                            backgroundColor: Colors.orange,
                           ));
                           return;
                         }
-                        if (usernameController.text.trim() == 'admin' &&
-                            passwordController.text.trim() == 'admin') {
-                          loginBloc.add(LoginRequestEvent());
-                        } else {
+                        if (!sharedPreferences
+                            .containsKey(usernameController.text.trim())) {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
-                            content: Text('Username or password incorrect'),
+                            content: Text('User doesn\'t exist'),
+                            backgroundColor: Colors.orange,
                           ));
+                          return;
                         }
+                        loginBloc.add(LoginRequestEvent(
+                            usernameController.text.trim(),
+                            passwordController.text.trim()));
                       },
                       // ignore: sort_child_properties_last
                       child: const Text(

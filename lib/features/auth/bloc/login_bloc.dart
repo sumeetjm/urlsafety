@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:urlsafety/core/error/failures.dart';
 import 'package:urlsafety/core/usecase/usecase.dart';
@@ -17,19 +19,22 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       required this.logout})
       : super(LoginInitial()) {
     on<LoginRequestEvent>((event, emit) async {
-      final mayBeUser = await login(NoParams());
+      final mayBeUser =
+          await login(MultiParams([event.username, event.password]));
       mayBeUser.fold(
           (l) =>
               l is ServerFailure ? emit(LoginFailure()) : emit(LoginFailure()),
-          (r) => emit(LoginSuccess()));
+          (r) => r
+              ? emit(LoginSuccess())
+              : emit(LoginFailure('Username or password incorrect')));
     });
     on<LogoutRequestEvent>((event, emit) async {
       final mayBeVoid = await logout(NoParams());
       mayBeVoid.fold(
-          (l) => l is ServerFailure
-              ? emit(LogoutFailure())
-              : emit(LogoutFailure()),
-          (r) => emit(LogoutSuccess()));
+          (l) => emit(LogoutFailure()),
+          (r) => r
+              ? emit(LogoutSuccess())
+              : emit(LogoutFailure('Unable to logout')));
     });
   }
 }

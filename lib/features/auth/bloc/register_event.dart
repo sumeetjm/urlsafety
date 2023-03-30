@@ -6,7 +6,9 @@ abstract class RegisterEvent extends Equatable {
 }
 
 class RegisterRequestEvent extends RegisterEvent {
-  RegisterRequestEvent() : super();
+  final String username;
+  final String password;
+  RegisterRequestEvent(this.username, this.password) : super();
   @override
   List<Object?> get props => [];
 }
